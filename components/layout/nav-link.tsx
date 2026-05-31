@@ -28,7 +28,7 @@ export function NavLink({
       href={href}
       className={cn(
         "relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-xs font-medium whitespace-nowrap",
-        "transition-all duration-300",
+        "transition-colors duration-200",
         "hover:bg-white/6",
         isActive ? accentClass : "text-muted-foreground hover:text-foreground",
       )}

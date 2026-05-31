@@ -70,8 +70,8 @@ export function Navbar() {
             <button
               className={cn(
                 "relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-xs font-medium whitespace-nowrap",
-                "transition-all duration-300 cursor-pointer",
-                "hover:bg-white/6",
+                "transition-colors duration-200 cursor-pointer",
+                "hover:bg-white/6 active:bg-white/10",
                 isAdultActive ? roseAccent : "text-zinc-500 hover:text-zinc-300",
               )}
             >
