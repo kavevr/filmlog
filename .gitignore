@@ -43,5 +43,8 @@ next-env.d.ts
 # ai / agents
 .agents/
 .claude/
+.codex/
 skills-lock.json
 .mcp.json
+prompt.md
+CLAUDE.md
