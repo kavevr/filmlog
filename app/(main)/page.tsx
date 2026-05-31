@@ -24,10 +24,6 @@ export default function Home() {
         />
 
         <div className="relative z-10">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-4 py-1.5 text-sm text-cyan-400">
-            <Sparkles className="h-4 w-4" />
-            <span>AI-Powered Film Tracking</span>
-          </div>
 
           <h1 className="max-w-2xl text-5xl font-bold tracking-tight sm:text-7xl">
             <span className="bg-linear-to-r from-foreground via-foreground/70 to-muted-foreground bg-clip-text text-transparent">

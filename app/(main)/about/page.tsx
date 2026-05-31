@@ -23,15 +23,6 @@ const features = [
   },
 ];
 
-const techStack = [
-  { label: "Framework", value: "Next.js 16" },
-  { label: "Runtime", value: "React 19" },
-  { label: "Styling", value: "Tailwind CSS v4" },
-  { label: "UI", value: "shadcn/ui" },
-  { label: "Icons", value: "Lucide React" },
-  { label: "Lang", value: "TypeScript" },
-];
-
 export default function AboutPage() {
   return (
     <main className="flex-1">
@@ -71,28 +62,6 @@ export default function AboutPage() {
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tech Stack */}
-      <section className="border-t border-white/4 px-4 py-20">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-10 text-center text-2xl font-bold text-foreground">
-            技术栈
-          </h2>
-          <div className="overflow-hidden rounded-2xl border border-white/6">
-            <div className="divide-y divide-white/4">
-              {techStack.map((t) => (
-                <div
-                  key={t.label}
-                  className="flex items-center justify-between px-6 py-4 transition-all hover:bg-white/2"
-                >
-                  <span className="text-sm text-muted-foreground">{t.label}</span>
-                  <span className="font-mono text-sm text-foreground">{t.value}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>

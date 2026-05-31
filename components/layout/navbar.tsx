@@ -31,7 +31,7 @@ export function Navbar() {
     <header
       className={cn(
         "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500",
-        scrolled ? "top-0 w-full" : "top-6 w-1/4 min-w-115",
+        scrolled ? "top-0 w-1/4 min-w-115" : "top-6 w-1/4 min-w-115",
       )}
     >
       <nav
@@ -39,9 +39,9 @@ export function Navbar() {
           "flex items-center justify-center gap-0.5 px-3 py-2.5 flex-nowrap",
           "bg-background/40 backdrop-blur-2xl",
           "border border-white/6",
-          "shadow-[0_8px_32px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.02)_inset,0_0_60px_rgba(6,182,212,0.06)]",
-          "transition-all duration-500",
-          scrolled ? "rounded-none border-t-0" : "rounded-full",
+          "shadow-[0_8px_22px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.02)_inset,0_0_60px_rgba(6,182,212,0.06)]",
+          "transition-all duration-100",
+          scrolled ? "rounded-4xl border-t-0" : "rounded-full",
         )}
       >
         {/* top highlight — floating only */}
@@ -129,8 +129,7 @@ export function Navbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* ── theme toggle ── */}
-        <ThemeToggle />
+
 
         {/* ── about ── */}
         <NavLink
@@ -139,6 +138,9 @@ export function Navbar() {
           icon={Info}
           label="关于"
         />
+
+        {/* ── theme toggle ── */}
+        <ThemeToggle />
       </nav>
     </header>
   );
