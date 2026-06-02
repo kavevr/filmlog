@@ -31,6 +31,7 @@ export default function AdultAnimePage() {
                 poster={a.poster}
                 accent={a.accent}
                 variant={a.variant}
+                href={a.detailHref}
               />
             ))}
           </div>

@@ -13,8 +13,9 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { LazyImage } from "@/components/media/lazy-image";
 import { getDetailById } from "@/data/movie-details";
-import { cn } from "@/lib/utils";
+import { posterImageUrl, cn } from "@/lib/utils";
 
 interface Props {
   params: Promise<{ titleId: string }>;
@@ -49,11 +50,12 @@ export default async function TitleDetailPage({ params }: Props) {
           <div className="flex flex-col gap-8 sm:flex-row">
             {/* Poster */}
             <div className="shrink-0">
-              <div className="aspect-3/4 w-48 overflow-hidden rounded-2xl border border-white/8 bg-linear-to-br from-cyan-500/20 to-blue-800/30 sm:w-56">
-                <div className="flex h-full items-center justify-center">
-                  <Clapperboard className="h-16 w-16 text-white/15" />
-                </div>
-              </div>
+              <LazyImage
+                src={posterImageUrl(id)}
+                alt={titles.main_title}
+                fallback="bg-linear-to-br from-cyan-500/20 to-blue-800/30"
+                className="aspect-3/4 w-48 overflow-hidden rounded-2xl border border-white/8 sm:w-56"
+              />
             </div>
 
             {/* Info */}

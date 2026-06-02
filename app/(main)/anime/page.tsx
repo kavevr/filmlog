@@ -31,6 +31,7 @@ export default function AnimePage() {
                 genre={a.genre}
                 poster={a.poster}
                 accent={a.accent}
+                href={a.detailHref}
               />
             ))}
           </div>

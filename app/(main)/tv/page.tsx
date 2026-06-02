@@ -31,6 +31,7 @@ export default function TvPage() {
                 genre={s.genre}
                 poster={s.poster}
                 accent={s.accent}
+                href={s.detailHref}
                 meta={
                   <span className="inline-flex items-center gap-1 text-xs text-zinc-500">
                     <Tv className="h-3 w-3" /> {s.seasons}季

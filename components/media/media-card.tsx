@@ -4,6 +4,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Star, Play, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { LazyImage } from "@/components/media/lazy-image";
+import { posterImageUrl } from "@/lib/utils";
 import type { AccentColor } from "@/types/media";
 
 export interface MediaCardProps {
@@ -11,13 +13,13 @@ export interface MediaCardProps {
   year: string;
   rating: string;
   genre: string;
-  /** Tailwind gradient class for poster placeholder */
+  /** Tailwind gradient class for poster fallback */
   poster: string;
   accent: AccentColor;
   subtitle?: string;
   meta?: React.ReactNode;
   variant?: "default" | "adult";
-  /** Link to detail page */
+  /** Link to detail page — also used to derive the poster image */
   href?: string;
 }
 
@@ -29,6 +31,12 @@ const accentMap: Record<AccentColor, { hover: string; glow: string }> = {
   amber:  { hover: "group-hover:text-amber-400",  glow: "hover:shadow-[0_0_40px_rgba(245,158,11,0.06)]" },
 };
 
+function extractTitleId(href?: string): number | null {
+  if (!href) return null;
+  const id = parseInt(href.split("/").pop()!, 10);
+  return isNaN(id) ? null : id;
+}
+
 function CardContent({
   title,
   year,
@@ -39,9 +47,12 @@ function CardContent({
   subtitle,
   meta,
   variant = "default",
-}: Omit<MediaCardProps, "href">) {
+  href,
+}: Omit<MediaCardProps, "href"> & { href?: string }) {
   const colors = accentMap[accent];
   const isAdult = variant === "adult";
+  const titleId = extractTitleId(href);
+  const imageSrc = titleId ? posterImageUrl(titleId) : null;
 
   return (
     <div
@@ -50,18 +61,27 @@ function CardContent({
         colors.glow,
       )}
     >
-      {/* poster placeholder */}
-      <div className={cn("aspect-3/4 relative", poster)}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          {isAdult ? (
-            <Eye className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
-          ) : (
-            <Play className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
-          )}
-        </div>
+      {/* poster */}
+      <div className="aspect-3/4 relative">
+        {imageSrc ? (
+          <LazyImage
+            src={imageSrc}
+            alt={title}
+            fallback={poster}
+            className="absolute inset-0"
+          />
+        ) : (
+          <div className={cn("absolute inset-0 flex items-center justify-center", poster)}>
+            {isAdult ? (
+              <Eye className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
+            ) : (
+              <Play className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
+            )}
+          </div>
+        )}
 
         {/* rating badge */}
-        <div className="absolute right-3 top-3">
+        <div className="absolute right-3 top-3 z-10">
           <Badge
             variant="secondary"
             className="gap-1 border-0 bg-black/60 px-2 py-0.5 text-xs font-semibold backdrop-blur-md"
@@ -98,7 +118,7 @@ export function MediaCard({ href, ...props }: MediaCardProps) {
   if (href) {
     return (
       <Link href={href} className="block">
-        <CardContent {...props} />
+        <CardContent {...props} href={href} />
       </Link>
     );
   }
