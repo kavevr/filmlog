@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Star, Play, Eye } from "lucide-react";
+import { useState } from "react";
+import { Star, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/media/lazy-image";
 import { posterImageUrl } from "@/lib/utils";
@@ -49,10 +50,18 @@ function CardContent({
   variant = "default",
   href,
 }: Omit<MediaCardProps, "href"> & { href?: string }) {
+  const [revealed, setRevealed] = useState(false);
   const colors = accentMap[accent];
   const isAdult = variant === "adult";
+  const blurred = isAdult && !revealed;
   const titleId = extractTitleId(href);
   const imageSrc = titleId ? posterImageUrl(titleId) : null;
+
+  function handleReveal(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setRevealed(true);
+  }
 
   return (
     <div
@@ -63,25 +72,43 @@ function CardContent({
     >
       {/* poster */}
       <div className="aspect-3/4 relative">
-        {imageSrc ? (
-          <LazyImage
-            src={imageSrc}
-            alt={title}
-            fallback={poster}
-            className="absolute inset-0"
-          />
-        ) : (
-          <div className={cn("absolute inset-0 flex items-center justify-center", poster)}>
-            {isAdult ? (
+        {/* Image layer — blurred when adult & not revealed */}
+        <div
+          className={cn(
+            "absolute inset-0 transition-all duration-500",
+            blurred && "blur-sm scale-105",
+          )}
+        >
+          {imageSrc ? (
+            <LazyImage
+              src={imageSrc}
+              alt={title}
+              fallback={poster}
+              className="absolute inset-0"
+            />
+          ) : (
+            <div className={cn("absolute inset-0 flex items-center justify-center", poster)}>
               <Eye className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
-            ) : (
-              <Play className="h-12 w-12 text-white/20 transition-all group-hover:scale-110 group-hover:text-white/60" />
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Frosted overlay for adult content */}
+        {blurred && (
+          <button
+            type="button"
+            onClick={handleReveal}
+            className="absolute inset-0 z-10 flex cursor-pointer flex-col items-center justify-center gap-3 bg-white/3 backdrop-blur-md transition-all hover:bg-white/6"
+          >
+            <Eye className="h-10 w-10 text-white/30" />
+            <span className="text-sm font-medium text-white/40">
+              点击查看预览
+            </span>
+          </button>
         )}
 
         {/* rating badge */}
-        <div className="absolute right-3 top-3 z-10">
+        <div className="absolute right-3 top-3 z-20">
           <Badge
             variant="secondary"
             className="gap-1 border-0 bg-black/60 px-2 py-0.5 text-xs font-semibold backdrop-blur-md"
