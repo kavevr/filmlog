@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Settings,
   Plus,
@@ -12,10 +12,16 @@ import {
   TrendingUp,
   Eye,
   DollarSign,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMediaStore, type MediaCategory } from "@/store/media";
-import type { MediaItem, AccentColor } from "@/types/media";
+import type { MediaItem, MovieDetail, Person, AccentColor } from "@/types/media";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +63,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 /* ── Config ── */
 const categories: { key: MediaCategory; label: string; icon: React.ReactNode }[] = [
@@ -76,6 +83,18 @@ const emptyItem: MediaItem = {
   accent: "cyan",
 };
 
+type SortKey = keyof Pick<MediaItem, "title" | "year" | "rating" | "genre" | "accent">;
+
+const sortColumns: { key: SortKey; label: string }[] = [
+  { key: "title", label: "标题" },
+  { key: "year", label: "年份" },
+  { key: "rating", label: "评分" },
+  { key: "genre", label: "类型" },
+  { key: "accent", label: "Accent" },
+];
+
+const PAGE_SIZES = [5, 10, 20, 50];
+
 /* ── Page ── */
 export default function AdminPage() {
   const store = useMediaStore();
@@ -85,17 +104,128 @@ export default function AdminPage() {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [form, setForm] = useState<MediaItem>(emptyItem);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("title");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
+  /* ── Detail editing state ── */
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailForm, setDetailForm] = useState<MovieDetail | null>(null);
+  const detail = detailForm;
+
+  const openDetailEdit = (item: MediaItem) => {
+    if (!item.detailHref) return;
+    const id = parseInt(item.detailHref.split("/").pop()!, 10);
+    const existing = store.movieDetails.find((d) => d.movie_id === id);
+    if (existing) {
+      setDetailForm({ ...existing });
+    } else {
+      // Create a new detail scaffold from the MediaItem
+      setDetailForm({
+        movie_id: id,
+        imdb_id: "",
+        poster_url: "",
+        duration_minutes: 0,
+        region_of_origin: "",
+        original_language: "",
+        release_date: "",
+        titles: { main_title: item.title, aka: [] },
+        genres: item.genre.split(" / "),
+        cast_and_crew: {
+          directors: item.director ? [{ person_id: Date.now(), name: item.director }] : [],
+          writers: [],
+          actors: [],
+        },
+      });
+    }
+    setDetailOpen(true);
+  };
+
+  const handleDetailSave = () => {
+    if (!detail) return;
+    if (!detail.titles.main_title.trim()) {
+      toast.error("标题不能为空");
+      return;
+    }
+    store.upsertDetail(detail);
+    toast.success("详情已保存");
+    setDetailOpen(false);
+  };
+
+  const setDetailField = <K extends keyof MovieDetail>(
+    field: K,
+    value: MovieDetail[K]
+  ) => {
+    if (!detail) return;
+    setDetailForm({ ...detail, [field]: value });
+  };
+
+  const setDetailTitle = (field: "main_title" | "aka_string", value: string) => {
+    if (!detail) return;
+    if (field === "main_title") {
+      setDetailForm({
+        ...detail,
+        titles: { ...detail.titles, main_title: value },
+      });
+    } else {
+      setDetailForm({
+        ...detail,
+        titles: { ...detail.titles, aka: value.split(",").map((s) => s.trim()).filter(Boolean) },
+      });
+    }
+  };
+
+  const setDetailPeople = (
+    role: "directors" | "writers" | "actors",
+    value: string
+  ) => {
+    if (!detail) return;
+    const names = value.split(",").map((s) => s.trim()).filter(Boolean);
+    const people: Person[] = names.map((name, i) => ({
+      person_id: Date.now() + i,
+      name,
+      ...(role === "actors" ? { sequence: i + 1 } : {}),
+    }));
+    setDetailForm({
+      ...detail,
+      cast_and_crew: { ...detail.cast_and_crew, [role]: people },
+    });
+  };
 
   const items = useMemo(() => {
     const raw = store.getByCategory(selCategory);
-    if (!search.trim()) return raw;
-    const q = search.toLowerCase();
-    return raw.filter(
-      (m) =>
-        m.title.toLowerCase().includes(q) ||
-        m.genre.toLowerCase().includes(q)
-    );
-  }, [selCategory, search, store]);
+    const filtered = (() => {
+      if (!search.trim()) return raw;
+      const q = search.toLowerCase();
+      return raw.filter(
+        (m) =>
+          m.title.toLowerCase().includes(q) ||
+          m.genre.toLowerCase().includes(q)
+      );
+    })();
+
+    const sorted = [...filtered].sort((a, b) => {
+      const aVal = (a[sortKey] ?? "").toString().toLowerCase();
+      const bVal = (b[sortKey] ?? "").toString().toLowerCase();
+      // Numeric sort for year/rating
+      if (sortKey === "year" || sortKey === "rating") {
+        const aNum = parseFloat(aVal) || 0;
+        const bNum = parseFloat(bVal) || 0;
+        return sortDir === "asc" ? aNum - bNum : bNum - aNum;
+      }
+      return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+
+    return sorted;
+  }, [selCategory, search, sortKey, sortDir, store]);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedItems = items.slice(safePage * pageSize, (safePage + 1) * pageSize);
+
+  // Reset page when category/search/sort changes
+  useEffect(() => { setPage(0); }, [selCategory, search, sortKey, sortDir]);
 
   /* ── Stats ── */
   const stats = useMemo(() => {
@@ -120,8 +250,16 @@ export default function AdminPage() {
   const handleSave = () => {
     if (!form.title.trim()) { toast.error("标题不能为空"); return; }
     if (editIdx !== null) {
-      store.updateItem(selCategory, editIdx, form);
-      toast.success("更新成功");
+      // Find the item's actual index in the store array
+      const target = items[editIdx];
+      const storeArr = store.getByCategory(selCategory);
+      const storeIdx = storeArr.findIndex(
+        (m) => m.title === target?.title && m.year === target?.year
+      );
+      if (storeIdx !== -1) {
+        store.updateItem(selCategory, storeIdx, form);
+        toast.success("更新成功");
+      }
     } else {
       store.addItem(selCategory, form);
       toast.success("新增成功");
@@ -131,8 +269,15 @@ export default function AdminPage() {
 
   const handleDelete = () => {
     if (editIdx !== null) {
-      store.deleteItem(selCategory, editIdx);
-      toast.success("删除成功");
+      const target = items[editIdx];
+      const storeArr = store.getByCategory(selCategory);
+      const storeIdx = storeArr.findIndex(
+        (m) => m.title === target?.title && m.year === target?.year
+      );
+      if (storeIdx !== -1) {
+        store.deleteItem(selCategory, storeIdx);
+        toast.success("删除成功");
+      }
     }
     setDeleteOpen(false);
   };
@@ -141,6 +286,22 @@ export default function AdminPage() {
     setForm((f) => ({ ...f, [field]: value }));
 
   const cat = categories.find((c) => c.key === selCategory);
+
+  const handleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }, [sortKey]);
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="ml-1 h-3 w-3 text-cyan-400" />
+      : <ArrowDown className="ml-1 h-3 w-3 text-cyan-400" />;
+  };
 
   return (
     <main className="flex-1">
@@ -241,18 +402,31 @@ export default function AdminPage() {
                   <TableHeader>
                     <TableRow className="border-white/6 hover:bg-transparent">
                       <TableHead className="text-muted-foreground text-xs w-8">#</TableHead>
-                      <TableHead className="text-muted-foreground text-xs">标题</TableHead>
-                      <TableHead className="text-muted-foreground text-xs">年份</TableHead>
-                      <TableHead className="text-muted-foreground text-xs">评分</TableHead>
-                      <TableHead className="text-muted-foreground text-xs hidden sm:table-cell">类型</TableHead>
-                      <TableHead className="text-muted-foreground text-xs hidden md:table-cell">Accent</TableHead>
+                      {sortColumns.map((col) => (
+                        <TableHead
+                          key={col.key}
+                          className={cn(
+                            "text-muted-foreground text-xs cursor-pointer select-none hover:text-foreground transition-colors",
+                            col.key === "genre" && "hidden sm:table-cell",
+                            col.key === "accent" && "hidden md:table-cell",
+                          )}
+                          onClick={() => handleSort(col.key)}
+                        >
+                          <span className="inline-flex items-center">
+                            {col.label}
+                            <SortIcon col={col.key} />
+                          </span>
+                        </TableHead>
+                      ))}
                       <TableHead className="text-muted-foreground text-xs w-24">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.map((item, i) => (
-                      <TableRow key={i} className="border-white/4 hover:bg-white/3">
-                        <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
+                    {paginatedItems.map((item, i) => {
+                      const actualIdx = safePage * pageSize + i;
+                      return (
+                      <TableRow key={actualIdx} className="border-white/4 hover:bg-white/3">
+                        <TableCell className="text-xs text-muted-foreground">{actualIdx + 1}</TableCell>
                         <TableCell className="font-medium text-foreground text-sm">
                           {item.title}
                           {item.variant === "adult" && (
@@ -267,19 +441,26 @@ export default function AdminPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon-xs" onClick={() => openEdit(i)}
+                            {item.detailHref && (
+                              <Button variant="ghost" size="icon-xs" onClick={() => openDetailEdit(item)}
+                                className="h-7 w-7 rounded-lg hover:bg-cyan-400/10 hover:text-cyan-400">
+                                <FileText className="h-3 w-3" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon-xs" onClick={() => openEdit(actualIdx)}
                               className="h-7 w-7 rounded-lg hover:bg-white/8">
                               <Pencil className="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="icon-xs" onClick={() => confirmDelete(i)}
+                            <Button variant="ghost" size="icon-xs" onClick={() => confirmDelete(actualIdx)}
                               className="h-7 w-7 rounded-lg hover:bg-rose-400/10 hover:text-rose-400">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
-                    {items.length === 0 && (
+                      );
+                    })}
+                    {paginatedItems.length === 0 && (
                       <TableRow className="border-white/4">
                         <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                           {search ? "没有匹配的结果" : "暂无数据，点击右上角「新增」按钮添加"}
@@ -289,10 +470,74 @@ export default function AdminPage() {
                   </TableBody>
                 </Table>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground px-1">
-                共 {items.length} 条记录
-                {search && `（已筛选，总计 ${store.getByCategory(selCategory).length} 条）`}
-              </p>
+              {/* Pagination + count */}
+              <div className="mt-3 flex items-center justify-between gap-4 flex-wrap">
+                <p className="text-xs text-muted-foreground px-1">
+                  共 {items.length} 条记录
+                  {search && `（已筛选，总计 ${store.getByCategory(selCategory).length} 条）`}
+                  {items.length > 0 && ` · 第 ${safePage + 1}/${totalPages} 页`}
+                </p>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon-xs"
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={safePage === 0}
+                      className="h-7 w-7 rounded-lg"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => {
+                      // Show first, last, current, and neighbors
+                      if (
+                        i === 0 ||
+                        i === totalPages - 1 ||
+                        Math.abs(i - safePage) <= 1
+                      ) {
+                        return (
+                          <Button
+                            key={i}
+                            variant={i === safePage ? "default" : "outline"}
+                            size="icon-xs"
+                            onClick={() => setPage(i)}
+                            className="h-7 w-7 rounded-lg text-xs"
+                          >
+                            {i + 1}
+                          </Button>
+                        );
+                      }
+                      // Show ellipsis
+                      if (i === 1 && safePage > 2) {
+                        return <span key="ellipsis-start" className="px-1 text-muted-foreground text-xs">…</span>;
+                      }
+                      if (i === totalPages - 2 && safePage < totalPages - 3) {
+                        return <span key="ellipsis-end" className="px-1 text-muted-foreground text-xs">…</span>;
+                      }
+                      return null;
+                    })}
+                    <Button
+                      variant="outline"
+                      size="icon-xs"
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      disabled={safePage >= totalPages - 1}
+                      className="h-7 w-7 rounded-lg"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
+                    {/* Page size selector */}
+                    <select
+                      value={pageSize}
+                      onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+                      className="ml-2 h-7 rounded-lg border border-white/8 bg-card px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+                    >
+                      {PAGE_SIZES.map((s) => (
+                        <option key={s} value={s}>{s} / 页</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </TabsContent>
           ))}
         </Tabs>
@@ -394,6 +639,145 @@ export default function AdminPage() {
           <div className="flex justify-end gap-2 mt-2">
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>取消</Button>
             <Button variant="destructive" onClick={handleDelete}>删除</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Editing Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="sm:max-w-2xl bg-card border-white/8 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-cyan-400" />
+              编辑详情 — {detail?.titles.main_title ?? ""}
+            </DialogTitle>
+          </DialogHeader>
+          {detail && (
+            <div className="grid gap-4 py-2">
+              {/* Basic info */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="grid gap-1.5">
+                  <Label>IMDb ID</Label>
+                  <Input
+                    value={detail.imdb_id}
+                    onChange={(e) => setDetailField("imdb_id", e.target.value)}
+                    placeholder="tt1234567"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>时长 (分钟)</Label>
+                  <Input
+                    type="number"
+                    value={detail.duration_minutes || ""}
+                    onChange={(e) => setDetailField("duration_minutes", parseInt(e.target.value) || 0)}
+                    placeholder="120"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>上映日期</Label>
+                  <Input
+                    value={detail.release_date}
+                    onChange={(e) => setDetailField("release_date", e.target.value)}
+                    placeholder="2024-01-01"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label>地区</Label>
+                  <Input
+                    value={detail.region_of_origin}
+                    onChange={(e) => setDetailField("region_of_origin", e.target.value)}
+                    placeholder="美国"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>原始语言</Label>
+                  <Input
+                    value={detail.original_language}
+                    onChange={(e) => setDetailField("original_language", e.target.value)}
+                    placeholder="英语"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>海报 URL</Label>
+                <Input
+                  value={detail.poster_url}
+                  onChange={(e) => setDetailField("poster_url", e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+
+              {/* Titles */}
+              <div className="grid gap-1.5">
+                <Label>主标题</Label>
+                <Input
+                  value={detail.titles.main_title}
+                  onChange={(e) => setDetailTitle("main_title", e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>别名 (逗号分隔)</Label>
+                <Input
+                  value={detail.titles.aka.join(", ")}
+                  onChange={(e) => setDetailTitle("aka_string", e.target.value)}
+                  placeholder="沙丘：第二部, Dune 2"
+                />
+              </div>
+
+              {/* Genres */}
+              <div className="grid gap-1.5">
+                <Label>类型 (逗号分隔)</Label>
+                <Input
+                  value={detail.genres.join(", ")}
+                  onChange={(e) =>
+                    setDetailField(
+                      "genres",
+                      e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
+                    )
+                  }
+                  placeholder="科幻, 冒险, 剧情"
+                />
+              </div>
+
+              <Separator className="bg-white/6" />
+
+              {/* Cast & Crew */}
+              <div className="grid gap-1.5">
+                <Label>导演 (逗号分隔)</Label>
+                <Input
+                  value={detail.cast_and_crew.directors.map((p) => p.name).join(", ")}
+                  onChange={(e) => setDetailPeople("directors", e.target.value)}
+                  placeholder="Denis Villeneuve"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>编剧 (逗号分隔)</Label>
+                <Input
+                  value={detail.cast_and_crew.writers.map((p) => p.name).join(", ")}
+                  onChange={(e) => setDetailPeople("writers", e.target.value)}
+                  placeholder="Frank Herbert, Jon Spaihts"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>演员 (逗号分隔，按出场顺序)</Label>
+                <Input
+                  value={detail.cast_and_crew.actors
+                    .sort((a, b) => (a.sequence ?? 99) - (b.sequence ?? 99))
+                    .map((p) => p.name)
+                    .join(", ")}
+                  onChange={(e) => setDetailPeople("actors", e.target.value)}
+                  placeholder="Timothée Chalamet, Zendaya, Rebecca Ferguson"
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>取消</Button>
+            <Button onClick={handleDetailSave}>保存详情</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -32,6 +32,7 @@ export default function MoviesPage() {
                 poster={m.poster}
                 accent={m.accent}
                 subtitle={m.director}
+                href={m.detailHref}
               />
             ))}
           </div>

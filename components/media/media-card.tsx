@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Star, Play, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +17,8 @@ export interface MediaCardProps {
   subtitle?: string;
   meta?: React.ReactNode;
   variant?: "default" | "adult";
+  /** Link to detail page */
+  href?: string;
 }
 
 const accentMap: Record<AccentColor, { hover: string; glow: string }> = {
@@ -24,7 +29,7 @@ const accentMap: Record<AccentColor, { hover: string; glow: string }> = {
   amber:  { hover: "group-hover:text-amber-400",  glow: "hover:shadow-[0_0_40px_rgba(245,158,11,0.06)]" },
 };
 
-export function MediaCard({
+function CardContent({
   title,
   year,
   rating,
@@ -34,7 +39,7 @@ export function MediaCard({
   subtitle,
   meta,
   variant = "default",
-}: MediaCardProps) {
+}: Omit<MediaCardProps, "href">) {
   const colors = accentMap[accent];
   const isAdult = variant === "adult";
 
@@ -87,4 +92,15 @@ export function MediaCard({
       </div>
     </div>
   );
+}
+
+export function MediaCard({ href, ...props }: MediaCardProps) {
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        <CardContent {...props} />
+      </Link>
+    );
+  }
+  return <CardContent {...props} />;
 }

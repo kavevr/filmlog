@@ -108,6 +108,7 @@ export default function Home() {
                 genre={f.genre}
                 poster={f.poster}
                 accent={f.accent}
+                href={f.detailHref}
               />
             ))}
           </div>

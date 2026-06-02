@@ -21,6 +21,40 @@ export interface MediaItem {
   accent: AccentColor;
   /** Card display variant */
   variant?: "default" | "adult";
+  /** Link to detail page */
+  detailHref?: string;
+}
+
+/** ── Rich Movie Detail (matching backend JSON schema) ── */
+
+export interface Person {
+  person_id: number;
+  name: string;
+  sequence?: number;
+}
+
+export interface CastAndCrew {
+  directors: Person[];
+  writers: Person[];
+  actors: Person[];
+}
+
+export interface MovieTitles {
+  main_title: string;
+  aka: string[];
+}
+
+export interface MovieDetail {
+  movie_id: number;
+  imdb_id: string;
+  poster_url: string;
+  duration_minutes: number;
+  region_of_origin: string;
+  original_language: string;
+  release_date: string;
+  titles: MovieTitles;
+  genres: string[];
+  cast_and_crew: CastAndCrew;
 }
 
 /** A recently-watched entry shown in the activity feed */
