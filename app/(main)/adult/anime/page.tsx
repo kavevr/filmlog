@@ -1,9 +1,13 @@
+"use client";
+
 import { Flame } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { MediaCard } from "@/components/media/media-card";
-import { adultAnimeData } from "@/data/media";
+import { useMediaStore } from "@/store/media";
 
 export default function AdultAnimePage() {
+  const items = useMediaStore((s) => s.adultAnime);
+
   return (
     <main className="flex-1">
       <SectionHeader
@@ -17,7 +21,7 @@ export default function AdultAnimePage() {
       <section className="px-4 py-12">
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {adultAnimeData.map((a) => (
+            {items.map((a) => (
               <MediaCard
                 key={a.title}
                 title={a.title}

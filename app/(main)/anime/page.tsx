@@ -1,9 +1,13 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { MediaCard } from "@/components/media/media-card";
-import { animeData } from "@/data/media";
+import { useMediaStore } from "@/store/media";
 
 export default function AnimePage() {
+  const anime = useMediaStore((s) => s.anime);
+
   return (
     <main className="flex-1">
       <SectionHeader
@@ -18,7 +22,7 @@ export default function AnimePage() {
       <section className="px-4 py-12">
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {animeData.map((a) => (
+            {anime.map((a) => (
               <MediaCard
                 key={a.title}
                 title={a.title}

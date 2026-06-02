@@ -1,3 +1,5 @@
+"use client";
+
 import {
   TrendingUp,
   Play,
@@ -6,9 +8,12 @@ import {
   Zap,
 } from "lucide-react";
 import { MediaCard } from "@/components/media/media-card";
-import { featuredItems, recentEntries, statsItems } from "@/data/media";
+import { useMediaStore } from "@/store/media";
+import { statsItems } from "@/data/media";
 
 export default function Home() {
+  const featured = useMediaStore((s) => s.featured);
+  const recent = useMediaStore((s) => s.recent);
   return (
     <main className="flex-1">
       {/* ── Hero ── */}
@@ -94,7 +99,7 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredItems.map((f) => (
+            {featured.map((f) => (
               <MediaCard
                 key={f.title}
                 title={f.title}
@@ -120,7 +125,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            {recentEntries.map((r, i) => (
+            {recent.map((r, i) => (
               <div
                 key={r.title}
                 className="flex items-center justify-between rounded-xl border border-white/4 bg-white/1 px-5 py-4 transition-all hover:border-white/10 hover:bg-white/3"

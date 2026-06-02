@@ -1,9 +1,13 @@
+"use client";
+
 import { Film } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { MediaCard } from "@/components/media/media-card";
-import { moviesData } from "@/data/media";
+import { useMediaStore } from "@/store/media";
 
 export default function MoviesPage() {
+  const movies = useMediaStore((s) => s.movies);
+
   return (
     <main className="flex-1">
       <SectionHeader
@@ -18,7 +22,7 @@ export default function MoviesPage() {
       <section className="px-4 py-12">
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {moviesData.map((m) => (
+            {movies.map((m) => (
               <MediaCard
                 key={m.title}
                 title={m.title}

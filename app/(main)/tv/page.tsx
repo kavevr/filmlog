@@ -1,9 +1,13 @@
+"use client";
+
 import { Tv, Clock } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { MediaCard } from "@/components/media/media-card";
-import { tvData } from "@/data/media";
+import { useMediaStore } from "@/store/media";
 
 export default function TvPage() {
+  const tv = useMediaStore((s) => s.tv);
+
   return (
     <main className="flex-1">
       <SectionHeader
@@ -18,7 +22,7 @@ export default function TvPage() {
       <section className="px-4 py-12">
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {tvData.map((s) => (
+            {tv.map((s) => (
               <MediaCard
                 key={s.title}
                 title={s.title}

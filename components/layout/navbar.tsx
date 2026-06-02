@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Eye, ChevronDown, Info } from "lucide-react";
+import { Eye, ChevronDown, Info, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -30,8 +30,8 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500",
-        scrolled ? "top-0 w-1/4 min-w-115" : "top-6 w-1/4 min-w-115",
+        "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-auto max-w-[95vw]",
+        scrolled ? "top-0" : "top-6",
       )}
     >
       <nav
@@ -52,7 +52,9 @@ export function Navbar() {
         {/* ── main nav items ── */}
         {mainNavItems.map((item) => {
           const isActive =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
           return (
             <NavLink
               key={item.href}
@@ -72,7 +74,9 @@ export function Navbar() {
                 "relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-xs font-medium whitespace-nowrap",
                 "transition-colors duration-200 cursor-pointer",
                 "hover:bg-white/6 active:bg-white/10",
-                isAdultActive ? roseAccent : "text-zinc-500 hover:text-zinc-300",
+                isAdultActive
+                  ? roseAccent
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {isAdultActive && (
@@ -86,7 +90,10 @@ export function Navbar() {
               />
               <span className="hidden sm:inline">成人</span>
               <ChevronDown
-                className={cn("h-3 w-3 transition-transform duration-200", adultOpen && "rotate-180")}
+                className={cn(
+                  "h-3 w-3 transition-transform duration-200",
+                  adultOpen && "rotate-180",
+                )}
               />
             </button>
           </DropdownMenuTrigger>
@@ -129,8 +136,6 @@ export function Navbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-
-
         {/* ── about ── */}
         <NavLink
           href="/about"
@@ -139,8 +144,18 @@ export function Navbar() {
           label="关于"
         />
 
+        {/* ── admin ── */}
+        <NavLink
+          href="/admin"
+          isActive={pathname === "/admin"}
+          icon={Settings}
+          label="管理"
+        />
+
         {/* ── theme toggle ── */}
         <ThemeToggle />
+
+
       </nav>
     </header>
   );
