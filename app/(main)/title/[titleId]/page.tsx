@@ -10,12 +10,19 @@ import {
   Clapperboard,
   PenLine,
   Users,
+  BookOpen,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LazyImage } from "@/components/media/lazy-image";
 import { getDetailById } from "@/data/movie-details";
+import { fetchMovieDetail, apiDetailToMovieDetail } from "@/lib/api";
 import { posterImageUrl, cn } from "@/lib/utils";
+import type { MovieDetail } from "@/types/media";
+
+function isUrl(str: string): boolean {
+  return str.startsWith("http://") || str.startsWith("https://");
+}
 
 interface Props {
   params: Promise<{ titleId: string }>;
@@ -24,9 +31,24 @@ interface Props {
 export default async function TitleDetailPage({ params }: Props) {
   const { titleId } = await params;
   const id = parseInt(titleId, 10);
-  const detail = getDetailById(id);
 
-  if (!detail || isNaN(id)) {
+  if (isNaN(id)) {
+    notFound();
+  }
+
+  // Try static seed data first, then fall back to API
+  let detail: MovieDetail | undefined = getDetailById(id);
+
+  if (!detail) {
+    try {
+      const res = await fetchMovieDetail(titleId);
+      detail = apiDetailToMovieDetail(titleId, res.data);
+    } catch {
+      notFound();
+    }
+  }
+
+  if (!detail) {
     notFound();
   }
 
@@ -51,7 +73,7 @@ export default async function TitleDetailPage({ params }: Props) {
             {/* Poster */}
             <div className="shrink-0">
               <LazyImage
-                src={posterImageUrl(id)}
+                src={isUrl(detail.poster_url) ? detail.poster_url : posterImageUrl(id)}
                 alt={titles.main_title}
                 fallback="bg-linear-to-br from-cyan-500/20 to-blue-800/30"
                 className="aspect-3/4 w-48 overflow-hidden rounded-2xl border border-white/8 sm:w-56"
@@ -102,6 +124,21 @@ export default async function TitleDetailPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Description */}
+      {detail.description && (
+        <section className="px-4 pt-12">
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-4 flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-cyan-400" />
+              <h2 className="text-xl font-semibold text-foreground">剧情简介</h2>
+            </div>
+            <p className="max-w-3xl leading-relaxed text-muted-foreground">
+              {detail.description}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Cast & Crew */}
       <section className="px-4 py-12">

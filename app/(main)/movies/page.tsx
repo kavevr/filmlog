@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Film } from "lucide-react";
 import { SectionHeader } from "@/components/layout/section-header";
 import { MediaCard } from "@/components/media/media-card";
@@ -7,6 +8,12 @@ import { useMediaStore } from "@/store/media";
 
 export default function MoviesPage() {
   const movies = useMediaStore((s) => s.movies);
+  const syncMoviesFromApi = useMediaStore((s) => s.syncMoviesFromApi);
+
+  // Fetch movies from the backend API on mount
+  useEffect(() => {
+    syncMoviesFromApi();
+  }, [syncMoviesFromApi]);
 
   return (
     <main className="flex-1">

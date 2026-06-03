@@ -13,6 +13,13 @@ import {
   recentEntries,
 } from "@/data/media";
 import { movieDetails as initialMovieDetails } from "@/data/movie-details";
+import {
+  fetchMovieList,
+  fetchMovieDetail,
+  apiListItemToMediaItem,
+  apiDetailToMovieDetail,
+  enrichMediaItem,
+} from "@/lib/api";
 
 export type MediaCategory =
   | "movies"
@@ -36,6 +43,11 @@ interface MediaStore {
   /* ── Rich movie details ── */
   movieDetails: MovieDetail[];
 
+  /* ── API sync state ── */
+  apiSynced: boolean;
+  apiSyncing: boolean;
+  apiError: string | null;
+
   getByCategory: (category: MediaCategory) => MediaItem[];
   addItem: (category: MediaCategory, item: MediaItem) => void;
   updateItem: (category: MediaCategory, index: number, item: MediaItem) => void;
@@ -45,6 +57,9 @@ interface MediaStore {
   getDetailById: (id: number) => MovieDetail | undefined;
   upsertDetail: (detail: MovieDetail) => void;
   deleteDetail: (id: number) => void;
+
+  /** Fetch movies from the backend API and merge into the store. */
+  syncMoviesFromApi: () => Promise<void>;
 }
 
 export const useMediaStore = create<MediaStore>((set, get) => ({
@@ -58,6 +73,10 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
   recent: recentEntries,
 
   movieDetails: initialMovieDetails,
+
+  apiSynced: false,
+  apiSyncing: false,
+  apiError: null,
 
   getByCategory: (category) => get()[category],
 
@@ -93,4 +112,69 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
     set((s) => ({
       movieDetails: s.movieDetails.filter((d) => d.movie_id !== id),
     })),
+
+  /* ── API sync ── */
+  syncMoviesFromApi: async () => {
+    const { apiSynced, apiSyncing } = get();
+    if (apiSynced || apiSyncing) return;
+
+    set({ apiSyncing: true, apiError: null });
+    try {
+      // 1. Fetch the movie list
+      const listRes = await fetchMovieList();
+      const items = listRes.data ?? [];
+
+      // 2. Map to MediaItem (basic info only)
+      const apiMovies: MediaItem[] = items.map(apiListItemToMediaItem);
+
+      // 3. Enrich each movie with detail (year, rating, genre, director)
+      const enriched: MediaItem[] = [];
+      const newDetails: MovieDetail[] = [];
+
+      for (const item of apiMovies) {
+        const id = item.detailHref?.split("/").pop();
+        if (!id) {
+          enriched.push(item);
+          continue;
+        }
+
+        try {
+          const detailRes = await fetchMovieDetail(id);
+          const detail = detailRes.data;
+
+          // Enrich the MediaItem
+          enriched.push(enrichMediaItem(item, detail));
+
+          // Convert to MovieDetail for the detail store
+          const existingDetail = get().movieDetails.find(
+            (d) => d.movie_id === parseInt(id, 10),
+          );
+          if (!existingDetail) {
+            newDetails.push(apiDetailToMovieDetail(id, detail));
+          }
+        } catch {
+          // If detail fetch fails, keep the basic item
+          enriched.push(item);
+        }
+      }
+
+      // 4. Merge: API movies replace the movies array; keep seed data for other categories
+      set((s) => ({
+        movies: enriched,
+        movieDetails: s.movieDetails
+          .concat(newDetails)
+          // Deduplicate by movie_id
+          .filter(
+            (d, i, arr) => arr.findIndex((x) => x.movie_id === d.movie_id) === i,
+          ),
+        apiSynced: true,
+        apiSyncing: false,
+      }));
+    } catch (err) {
+      set({
+        apiSyncing: false,
+        apiError: err instanceof Error ? err.message : "Failed to sync movies",
+      });
+    }
+  },
 }));

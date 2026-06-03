@@ -55,6 +55,8 @@ export interface MovieDetail {
   titles: MovieTitles;
   genres: string[];
   cast_and_crew: CastAndCrew;
+  /** Plot summary / synopsis */
+  description?: string;
 }
 
 /** A recently-watched entry shown in the activity feed */

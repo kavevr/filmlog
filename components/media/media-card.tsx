@@ -38,6 +38,10 @@ function extractTitleId(href?: string): number | null {
   return isNaN(id) ? null : id;
 }
 
+function isUrl(str: string): boolean {
+  return str.startsWith("http://") || str.startsWith("https://");
+}
+
 function CardContent({
   title,
   year,
@@ -55,7 +59,8 @@ function CardContent({
   const isAdult = variant === "adult";
   const blurred = isAdult && !revealed;
   const titleId = extractTitleId(href);
-  const imageSrc = titleId ? posterImageUrl(titleId) : null;
+  // Prefer real poster URL from API, fall back to loliapi for seed data
+  const imageSrc = isUrl(poster) ? poster : titleId ? posterImageUrl(titleId) : null;
 
   function handleReveal(e: React.MouseEvent) {
     e.preventDefault();
