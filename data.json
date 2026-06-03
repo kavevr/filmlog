@@ -1,0 +1,99 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Movie",
+  "url": "https://www.imdb.com/title/tt0111835/",
+  "name": "Zhong Nan Hai bao biao",
+  "image": "https://m.media-amazon.com/images/M/MV5BN2NlODc4N2QtOTVhYi00ZjVmLWE5NGEtMDIzOTNkMDc4NTkyXkEyXkFqcGc@._V1_.jpg",
+  "description": "Corrupt tycoon kills witness to a crime. Only the girlfriend of a businessman with Chinese govt. ties saw it. Beijing bodyguard helps Hong Kong police protect her. But he and the witness develop feelings, complicating matters.",
+  "review": {
+    "@type": "Review",
+    "itemReviewed": {
+      "@type": "Movie",
+      "url": "https://www.imdb.com/title/tt0111835/"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "The_Void"
+    },
+    "dateCreated": "2004-09-04",
+    "inLanguage": "English",
+    "name": "There&apos;s something spoiling this movie...",
+    "reviewBody": "The first thing you will notice about this Hong Kong version of &apos;The Bodyguard&apos; is the incredibly awful dubbing. I&apos;ve seen badly dubbed films before, but never anything quite like this. It&apos;s so bad, in fact, that it almost seems like someone hired voice actors that were nothing like the actor that they were dubbing out of spite. Maybe the director, or Jet Li annoyed the man in charge of voice actor casting, and he thought he&apos;d get his own back. Perhaps the director requested terrible dubbing to give the film a seemingly unintentional comedy element? Whatever the reason; the dubbing in this film is poor. Very poor indeed. \n\nIncredibly awful dubbing aside (and it is awful, make no mistake), the film does feature some nice moments. The story follows that of a young girl who is one of three witnesses to a murder. The other two have been killed in &quot;accidents&quot;, so the girl&apos;s rich boyfriend hires her a bodyguard (complete with terrible dubbing) to protect her. Naturally, the two gradually fall in love as the film progresses. As I said, despite it&apos;s awful dubbing; the film does feature some nice moments. One of which involves an assassin taking out several guards with a bayonet, another of which involves an awfully dubbed kid exchanging his pretend gun with a police officer&apos;s, with hilarious comedy consequences, and naturally for a Jet Li film; there&apos;s Kung Fu, and lots of it.\n\nThe film has a rather profound element of comedy entwined within it&apos;s plot. As you know, there&apos;s an unintentional element, which is a result of the undeniably poor dubbing, and there&apos;s also an intentional element, which mostly comes from the little kid and the fat police officer. The cast on display here is nothing to write home about, and they&apos;re all poorly dubbed too. Jet Li takes the lead role, and he does fine (but nowhere near as good as he would do eight years later in the sublime &apos;Ying Xiong&apos;).\n\nAs I said, the dubbing in this movie is awful. Really, really bad and it does go some way to spoiling the entire thing. It&apos;s so bad that it&apos;s almost farcical, and at times it&apos;s hard to keep a straight face; which does the movie no favours in the credibility department. However, luckily for Jet Li and co; this movie is entertaining enough to just beat the awful dubbing. It&apos;s not a great film, but it is good and I recommend it to anyone that just wants to be entertained for an hour and a half. Or for anyone that wants to see proof of why subtitles are better than dubbing.",
+    "reviewRating": {
+      "@type": "Rating",
+      "worstRating": 1,
+      "bestRating": 10,
+      "ratingValue": 7
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingCount": 6185,
+    "bestRating": 10,
+    "worstRating": 1,
+    "ratingValue": 6.4
+  },
+  "contentRating": "R",
+  "genre": ["Action", "Crime", "Thriller"],
+  "datePublished": "1994-07-28",
+  "keywords": "child in jeopardy,man wears eyeglasses,body lands on a car,stabbing,dark comedy",
+  "trailer": {
+    "@type": "VideoObject",
+    "name": "Official Trailer",
+    "embedUrl": "https://www.imdb.com/video/vi2733099801/",
+    "thumbnail": {
+      "@type": "ImageObject",
+      "contentUrl": "https://m.media-amazon.com/images/M/MV5BMTc0MGExNGYtOTYyOC00Mjg3LThjNTktNDk0MmFkMWExZDk1XkEyXkFqcGdeQXRyYW5zY29kZS13b3JrZmxvdw@@._V1_.jpg"
+    },
+    "thumbnailUrl": "https://m.media-amazon.com/images/M/MV5BMTc0MGExNGYtOTYyOC00Mjg3LThjNTktNDk0MmFkMWExZDk1XkEyXkFqcGdeQXRyYW5zY29kZS13b3JrZmxvdw@@._V1_.jpg",
+    "url": "https://www.imdb.com/video/vi2733099801/",
+    "description": "Corrupt tycoon kills witness to a crime. Only the girlfriend of a businessman with Chinese govt. ties saw it. Beijing bodyguard helps Hong Kong police protect her. But he and the witness develop feelings, complicating matters.",
+    "duration": "PT4M14S",
+    "uploadDate": "2026-02-17T07:36:34.746343795Z"
+  },
+  "actor": [
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0001472/",
+      "name": "Jet Li"
+    },
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0161198/",
+      "name": "Christy Chung"
+    },
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0628853/",
+      "name": "Wai-Kwok Ng"
+    }
+  ],
+  "director": [
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0477035/",
+      "name": "Corey Yuen"
+    }
+  ],
+  "creator": [
+    {
+      "@type": "Organization",
+      "url": "https://www.imdb.com/company/co0083980/"
+    },
+    {
+      "@type": "Organization",
+      "url": "https://www.imdb.com/company/co0015592/"
+    },
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0150906/",
+      "name": "Gordon Chan"
+    },
+    {
+      "@type": "Person",
+      "url": "https://www.imdb.com/name/nm0150977/",
+      "name": "Kin Chung Chan"
+    }
+  ],
+  "duration": "PT1H32M"
+}

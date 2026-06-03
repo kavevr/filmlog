@@ -23,6 +23,7 @@ export interface ApiAggregateRating {
   ratingCount: string;
   bestRating: string;
   worstRating: string;
+  ratingValue: string;
 }
 
 export interface ApiMovieDetail {
@@ -164,7 +165,7 @@ export function enrichMediaItem(
     ...item,
     year: detail.datePublished?.slice(0, 4) ?? item.year,
     rating: detail.aggregateRating
-      ? `${detail.aggregateRating.ratingCount} 人评价`
+      ? `${detail.aggregateRating.ratingValue}`
       : item.rating,
     genre: detail.genre?.join(" / ") ?? item.genre,
     director: detail.director?.[0]?.name ?? item.director,
